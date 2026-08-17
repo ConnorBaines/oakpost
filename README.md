@@ -1,2 +1,2 @@
 # oakpost
-Email triage tool.
+Email triage tool for Phishing Analysis.
