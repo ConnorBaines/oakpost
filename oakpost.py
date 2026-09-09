@@ -25,12 +25,22 @@ def basic_headers(msg):
         "Date": msg["Date"],
     }
 
+def received_chain(msg):
+    """The Received chain, oldest hop first — the order the mail travelled."""
+    hops = msg.get_all("Received") or []
+    hops = list(reversed(hops))
+    return {
+        str(number): " ".join(str(hop).split())
+        for number, hop in enumerate(hops, start=1)
+    }
+
 
 # --- Command registry ------------------------------------------------------
 # Subcommand name -> function. Adding an analysis is one line here.
 
 COMMANDS = {
     "headers": basic_headers,
+    "received": received_chain,
 }
 
 
@@ -40,6 +50,9 @@ COMMANDS = {
 def print_section(title, pairs):
     """Print a titled block of aligned label/value lines."""
     print(f"\n== {title} ==")
+    if not pairs:
+        print("(nothing found)")
+        return
     width = max(len(key) for key in pairs) + 1
     for key, value in pairs.items():
         print((key + ":").ljust(width), value)
