@@ -1,6 +1,7 @@
 """oakpost — email header triage for the person writing the sample up."""
 
 import sys
+import re
 from email import policy
 from email.parser import BytesParser
 
@@ -34,6 +35,20 @@ def received_chain(msg):
         for number, hop in enumerate(hops, start=1)
     }
 
+AUTH_METHODS = ("spf", "dkim", "dmarc")
+
+def auth_results(msg):
+    """SPF, DKIM and DMARC verdicts pulled out of Authentication-Results."""
+    blob = " ".join(str(h) for h in (msg.get_all("Authentication-Results") or []))
+    verdicts = {}
+    for method in AUTH_METHODS:
+        found = re.findall(
+            rf"\b{method}=(\w+)(\s*\([^)]*\))?", blob, re.IGNORECASE
+        )
+        parts = [v + (" " + r.strip() if r else "") for v, r in found]
+        verdicts[method.upper()] = "/".join(dict.fromkeys(parts)) or "not present"
+    return verdicts
+
 
 # --- Command registry ------------------------------------------------------
 # Subcommand name -> function. Adding an analysis is one line here.
@@ -41,6 +56,7 @@ def received_chain(msg):
 COMMANDS = {
     "headers": basic_headers,
     "received": received_chain,
+    "auth": auth_results,
 }
 
 
