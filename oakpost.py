@@ -76,6 +76,17 @@ def print_section(title, pairs):
 
 # --- Entry point -----------------------------------------------------------
 
+def fail(message):
+    """Print an error and exit with a failure code."""
+    print(f"oakpost: {message}", file=sys.stderr)
+    sys.exit(1)
+
+EXPECTED_HEADERS = ("From", "To", "Subject", "Date", "Received", "Message-ID")
+
+def looks_like_email(msg):
+    """True if the parsed message carries at least one header a real email would."""
+    return any(msg[h] for h in EXPECTED_HEADERS)
+
 def main():
     args = sys.argv[1:]
 
@@ -85,13 +96,22 @@ def main():
         return
 
     if args[0] in COMMANDS:
+        if len(args) < 2:
+            fail(f"'{args[0]}' needs a file, e.g. oakpost.py {args[0]} sample.eml")
         chosen = [args[0]]        # a scalpel
         path = args[1]
     else:
         chosen = list(COMMANDS)   # no command given, so run everything
         path = args[0]
 
-    msg = load(path)
+    try:
+        msg = load(path)
+    except OSError as e:
+        fail(f"can't read {path}: {e.strerror}")
+
+    if not looks_like_email(msg):
+        fail(f"{path} doesn't look like an email (none of: {', '.join(EXPECTED_HEADERS)})")
+
     for name in chosen:
         print_section(name, COMMANDS[name](msg))
 
