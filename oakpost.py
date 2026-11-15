@@ -49,6 +49,32 @@ def auth_results(msg):
         verdicts[method.upper()] = "/".join(dict.fromkeys(parts)) or "not present"
     return verdicts
 
+URL_PATTERN = re.compile(r"https?:\/\/[^\s\"'<>]+", re.IGNORECASE)
+ANCHOR_PATTERN = re.compile(r'<a\s[^>]*href="([^"]+)"[^>]*>(.*?)</a>', re.IGNORECASE | re.DOTALL)
+
+def extract_urls(msg):
+    """Every URL in the plain-text and HTML parts, tagged with where it was found."""
+    found = {}
+    for part in msg.walk():
+        kind = part.get_content_type()
+        if kind not in ("text/plain", "text/html"):
+            continue
+        label = "plain" if kind == "text/plain" else "html"
+        # get_content() decodes quoted-printable, so links split across lines come back whole
+        for url in URL_PATTERN.findall(part.get_content()):
+            found.setdefault(url, [])
+            if label not in found[url]:
+                found[url].append(label)
+        # In HTML, show the whole link when its visible text is a different web address
+        if label == "html":
+            for href, inner in ANCHOR_PATTERN.findall(part.get_content()):
+                shown = re.sub(r"<[^>]+>", "", inner).strip()
+                if href in found and shown != href and URL_PATTERN.search(shown):
+                    found[href].append(f'<a href="{href}">{shown}</a>')
+    return {
+        str(number): f"{url}  ({', '.join(where)})"
+        for number, (url, where) in enumerate(found.items(), start=1)
+    }
 
 # --- Command registry ------------------------------------------------------
 # Subcommand name -> function. Adding an analysis is one line here.
@@ -57,6 +83,7 @@ COMMANDS = {
     "headers": basic_headers,
     "received": received_chain,
     "auth": auth_results,
+    "urls": extract_urls,
 }
 
 
