@@ -1,2 +1,93 @@
 # oakpost
-Email triage tool for Phishing Analysis.
+
+**oakpost** is a command-line tool that pulls the parts of a phishing email that security analysts typically need for initial triage: sender, route, SPF/DKIM/DMARC verdicts and every link out of a raw `.eml` file, so you don't have to search through 200 lines of headers yourself.
+
+It runs locally and only reads the file you give it. Nothing is uploaded anywhere, so it's safe to use on client mail and live phishing samples, but be mindful of the .eml files you download on your machine. **It is highly reccomended to keep the tool in a sandbox/vm.** 
+
+![oakpost running against the demo email](images/oakpost-full-run.png)
+
+## Built on
+
+- **Python 3**, standard library only — no packages to install.
+- Python's built-in [`email`](https://docs.python.org/3/library/email.html) package to read the `.eml`. It handles the encoding emails use (like quoted-printable, where links get split across lines), so oakpost always works on the text as the reader would see it.
+- [`re`](https://docs.python.org/3/library/re.html) (regular expressions) to pull out authentication verdicts and links.
+
+## How it works
+
+1. **Load** — oakpost reads the `.eml` file and parses it into a message.
+2. **Analyse** — each command is one small function that takes the message and returns its findings. None of them print anything, so each can be tested on its own.
+3. **Print** — one output function prints whatever the analysis returned, as a titled section.
+
+Run it with no command and it runs every analysis. Name a command and you get just that section.
+
+| Command | What it shows |
+| --- | --- |
+| `headers` | From, To, Subject and Date |
+| `received` | The Received chain, oldest hop first, so you can follow the route the mail took |
+| `auth` | SPF, DKIM and DMARC verdicts, with the reason the receiving server gave |
+| `urls` | Every link in the plain-text and HTML versions, tagged with where it was found. In HTML, a link whose visible text is a different web address is shown in full |
+
+## Examples
+
+The examples below use [`examples/demo.eml`](examples/demo.eml), a test email made for this README. It isn't a real phish, and every address in it is a reserved example domain.
+
+Catching a link that pretends to be somewhere else:
+
+```text
+$ python oakpost.py urls examples/demo.eml
+
+== urls ==
+1: https://www.example.com/storage  (plain, html)
+2: https://login.example.net/mailbox/verify  (html, <a href="https://login.example.net/mailbox/verify">https://www.example.com/storage</a>)
+```
+
+![urls catching a link whose text pretends to be somewhere else](images/oakpost-hidden-link.png)
+
+Line 2 is the trick: the reader sees `https://www.example.com/storage`, but the link goes to `login.example.net`. The plain-text version only has the honest link, so anyone checking that version sees nothing wrong.
+
+Checking authentication on its own:
+
+```bash
+python oakpost.py auth examples/demo.eml
+```
+
+![auth showing SPF, DKIM and DMARC verdicts](images/oakpost-auth.png)
+
+Everything at once:
+
+```bash
+python oakpost.py examples/demo.eml
+```
+
+> **Warning:** links are not defanged yet, so they print live and some terminals make them clickable. Don't click them. Defanging by default is on the roadmap.
+
+## Installation
+
+You need Python 3.8 or later.
+
+```bash
+git clone https://github.com/ConnorBaines/oakpost.git
+cd oakpost
+python oakpost.py examples/demo.eml
+```
+
+## Roadmap
+
+- [x] `headers` — the four identity headers
+- [x] `received` — the hop chain, oldest first
+- [x] `auth` — SPF, DKIM and DMARC verdicts
+- [x] Fail cleanly on a missing, unreadable or non-email file
+- [x] `urls` — links from both the plain-text and HTML parts
+- [ ] `iocs` — domains and IPs, deduplicated
+- [ ] Defang everything by default (`hxxps://`, `evil[.]com`), with no flag to turn it off
+- [ ] `--format markdown` — an IOC table that pastes straight into a write-up
+- [ ] Tag v0.1.0
+
+## Known limits
+
+- `urls` only reads `href="..."` written with double quotes. That covers almost all real email, but not every possible HTML.
+- One file at a time.
+
+## Licence
+
+MIT

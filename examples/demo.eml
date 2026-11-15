@@ -1,0 +1,40 @@
+Return-Path: <bounce@mailer.example.net>
+Received: from mail.example.net (mail.example.net [203.0.113.25])
+	by mx.example.org (Postfix) with ESMTPS id 4F2A91C0003
+	for <analyst@example.org>; Sun, 15 Nov 2026 17:30:05 +0000 (UTC)
+Received: from [192.0.2.10] (unknown [198.51.100.7])
+	by mail.example.net (Postfix) with ESMTPSA id 7B3C2880001
+	for <analyst@example.org>; Sun, 15 Nov 2026 17:30:02 +0000 (UTC)
+Authentication-Results: mx.example.org;
+	spf=fail (mx.example.org: domain of bounce@mailer.example.net does not designate 203.0.113.25 as permitted sender) smtp.mailfrom=bounce@mailer.example.net;
+	dkim=none (message not signed);
+	dmarc=fail (p=reject dis=none) header.from=example.com
+From: "IT Support (DEMO)" <it-support@example.com>
+To: analyst@example.org
+Subject: [oakpost demo] Your mailbox is almost full - TEST EMAIL, NOT REAL
+Date: Sun, 15 Nov 2026 17:30:00 +0000
+Message-ID: <oakpost-demo-001@example.net>
+MIME-Version: 1.0
+Content-Type: multipart/alternative; boundary="DEMO-BOUNDARY"
+
+--DEMO-BOUNDARY
+Content-Type: text/plain; charset=utf-8
+
+THIS IS A TEST EMAIL MADE FOR THE OAKPOST DEMO. IT IS NOT A REAL PHISH.
+
+Your mailbox is almost full. Review your storage here: https://www.example.com/storage
+
+IT Support
+
+--DEMO-BOUNDARY
+Content-Type: text/html; charset=utf-8
+
+<html><body>
+<p><b>THIS IS A TEST EMAIL MADE FOR THE OAKPOST DEMO. IT IS NOT A REAL PHISH.</b></p>
+<p>Your mailbox is almost full. Review your storage here:
+<a href="https://login.example.net/mailbox/verify">https://www.example.com/storage</a></p>
+<p><a href="https://login.example.net/mailbox/verify">Keep my mailbox</a></p>
+<p>IT Support</p>
+</body></html>
+
+--DEMO-BOUNDARY--
