@@ -16,7 +16,7 @@ It runs locally and only reads the file you give it. Nothing is uploaded anywher
 
 1. **Load** — oakpost reads the `.eml` file and parses it into a message.
 2. **Analyse** — each command is one small function that takes the message and returns its findings. None of them print anything, so each can be tested on its own.
-3. **Print** — one output function prints whatever the analysis returned, as a titled section.
+3. **Print** — one output function prints whatever the analysis returned, as a titled section. On the way out it defangs every link, domain and IP, and highlights lookalike characters in colour.
 
 Run it with no command and it runs every analysis. Name a command and you get just that section.
 
@@ -37,13 +37,13 @@ Catching a link that pretends to be somewhere else:
 $ python oakpost.py urls examples/demo.eml
 
 == urls ==
-1: https://www.example.com/storage  (plain, html)
-2: https://login.example.net/mailbox/verify  (html, <a href="https://login.example.net/mailbox/verify">https://www.example.com/storage</a>)
+1: hxxps://www.example[.]com/storage  (plain, html)
+2: hxxps://login.example[.]net/mailbox/verify  (html, <a href="hxxps://login.example[.]net/mailbox/verify">hxxps://www.example[.]com/storage</a>)
 ```
 
 ![urls catching a link whose text pretends to be somewhere else](images/oakpost-hidden-link.png)
 
-Line 2 is the trick: the reader sees `https://www.example.com/storage`, but the link goes to `login.example.net`. The plain-text version only has the honest link, so anyone checking that version sees nothing wrong.
+Line 2 is the trick: the reader sees `hxxps://www.example[.]com/storage`, but the link goes to `login.example[.]net`. The plain-text version only has the honest link, so anyone checking that version sees nothing wrong.
 
 Checking authentication on its own:
 
@@ -59,7 +59,27 @@ Everything at once:
 python oakpost.py examples/demo.eml
 ```
 
-> **Warning:** links are not defanged yet, so they print live and some terminals make them clickable. Don't click them. Defanging by default is on the roadmap.
+Spotting lookalike letters:
+
+```bash
+python oakpost.py headers examples/lookalike-demo.eml
+```
+
+[`examples/lookalike-demo.eml`](examples/lookalike-demo.eml) is a second test email. Its sender name and subject swap some letters for lookalikes from other parts of Unicode: a Greek `Τ` and `Ρ`, a Greek `ο`, and a mathematical `𝗉`. They read as normal English, but a filter matching the plain words would miss them. In a terminal, oakpost highlights each one in red, and whenever it finds any it ends with a one-line note saying how many and what they mean.
+
+Showing links live:
+
+```bash
+python oakpost.py urls --fang examples/demo.eml
+```
+
+`--fang` turns defanging off, for when you need a live link to paste into a tool like urlscan.io or VirusTotal. It works with any command, anywhere in the line, and prints a warning first.
+
+## Defanging
+
+Everything oakpost prints is defanged by default: `https://` becomes `hxxps://`, and the last dot of every domain and IP becomes `[.]`, so `login.example[.]net` and `203.0.113[.]25`. This is the main design decision behind oakpost. A triage tool shouldn't print clickable phishing links, and most email parsers do. Defanging happens in the one output function, so no command can print a live link by accident.
+
+Only the display changes. Every analysis still works on the real email, and `--fang` shows the original links when you ask for them.
 
 ## Installation
 
@@ -78,15 +98,18 @@ python oakpost.py examples/demo.eml
 - [x] `auth` — SPF, DKIM and DMARC verdicts
 - [x] Fail cleanly on a missing, unreadable or non-email file
 - [x] `urls` — links from both the plain-text and HTML parts
-- [ ] `iocs` — domains and IPs, deduplicated
-- [ ] Defang everything by default (`hxxps://`, `evil[.]com`), with no flag to turn it off
-- [ ] `--format markdown` — an IOC table that pastes straight into a write-up
+- [x] Defang everything by default (`hxxps://`, `evil[.]com`)
+- [x] `--fang` to show links live when you need them
+- [x] Highlight lookalike characters in colour
+- [ ] `--format markdown` — output that pastes straight into a write-up
 - [ ] Tag v0.1.0
 
 ## Known limits
 
 - `urls` only reads `href="..."` written with double quotes. That covers almost all real email, but not every possible HTML.
 - One file at a time.
+- Lookalike highlighting needs a terminal that shows colour. It's switched off when the output is saved to a file or piped into another tool, and when `NO_COLOR` is set.
+- Lookalikes are only highlighted when they're styled copies of plain letters, or non-Latin letters inside an otherwise English word. Genuine Greek or Russian text and accented letters (é, ü) are left alone.
 
 ## Licence
 

@@ -1,0 +1,44 @@
+Return-Path: <bounce@mailer.example.net>
+Received: from mail.example.net (mail.example.net [203.0.113.40])
+	by mx.example.org (Postfix) with ESMTPS id 9C1D42E0007
+	for <analyst@example.org>; Mon, 16 Nov 2026 09:12:07 +0000 (UTC)
+Received: from [192.0.2.20] (unknown [198.51.100.24])
+	by mail.example.net (Postfix) with ESMTPSA id 3E8B7110002
+	for <analyst@example.org>; Mon, 16 Nov 2026 09:12:04 +0000 (UTC)
+Authentication-Results: mx.example.org;
+	spf=pass (mx.example.org: domain of bounce@mailer.example.net designates 203.0.113.40 as permitted sender) smtp.mailfrom=bounce@mailer.example.net;
+	dkim=pass header.d=mailer.example.net;
+	dmarc=fail (p=quarantine dis=quarantine) header.from=example.com
+From: =?utf-8?b?zqFheXJvbGwgzqRlYW0gKERFTU8p?= <payroll@example.com>
+To: analyst@example.org
+Subject: =?utf-8?q?=5Boakpost_demo=5D_Y=CE=BFur_=F0=9D=97=89ayslip_is_ready_-_TEST_EM?=
+ =?utf-8?q?AIL=2C_NOT_REAL?=
+Date: Mon, 16 Nov 2026 09:12:00 +0000
+Message-ID: <oakpost-lookalike-demo-001@example.net>
+MIME-Version: 1.0
+Content-Type: multipart/alternative; boundary="DEMO-BOUNDARY"
+
+--DEMO-BOUNDARY
+Content-Type: text/plain; charset=utf-8
+
+THIS IS A TEST EMAIL MADE FOR THE OAKPOST DEMO. IT IS NOT A REAL PHISH.
+The sender name, subject and link text below use lookalike letters on purpose.
+
+Your payslip for November is ready: https://payroll.example.com/payslip
+
+Payroll Team
+
+--DEMO-BOUNDARY
+Content-Type: text/html; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+
+<html><body>
+<p><b>THIS IS A TEST EMAIL MADE FOR THE OAKPOST DEMO. IT IS NOT A REAL PHIS=
+H.</b></p>
+<p>Your payslip for November is ready:
+<a href=3D"https://payroll.example.net/login">https://p=D0=B0yroll.example.=
+com/payslip</a></p>
+<p>Payroll Team</p>
+</body></html>
+
+--DEMO-BOUNDARY--
