@@ -4,6 +4,8 @@
 
 It runs locally and only reads the file you give it. Nothing is uploaded anywhere, so it's safe to use on client mail and live phishing samples, but be mindful of the .eml files you download on your machine. **It is highly reccomended to keep the tool in a sandbox/vm.** 
 
+Everything oakpost prints is defanged by default (`hxxps://`, `example[.]com`), so no link in its output is clickable by accident.
+
 ![oakpost running against the demo email](images/oakpost-full-run.png)
 
 ## Built on
@@ -54,21 +56,15 @@ python oakpost.py auth examples/demo.eml
 
 ![auth showing SPF, DKIM and DMARC verdicts](images/oakpost-auth.png)
 
-Everything at once:
-
-```bash
-python oakpost.py examples/demo.eml
-```
-
-Spotting lookalike letters:
+Spotting letters swapped for lookalikes from other alphabets:
 
 ```bash
 python oakpost.py headers examples/lookalike-demo.eml
 ```
 
-[`examples/lookalike-demo.eml`](examples/lookalike-demo.eml) is a second test email. Its sender name and subject swap some letters for lookalikes from other parts of Unicode: a Greek `Τ` and `Ρ`, a Greek `ο`, and a mathematical `𝗉`. They read as normal English, but a filter matching the plain words would miss them. In a terminal, oakpost highlights each one in red, and whenever it finds any it ends with a one-line note saying how many and what they mean.
-
 ![headers highlighting lookalike letters in red](images/oakpost-lookalikes.png)
+
+[`lookalike-demo.eml`](examples/lookalike-demo.eml) hides Greek and mathematical letters in its sender name and subject. oakpost highlights each one in red and adds a note at the end.
 
 Showing links live:
 
@@ -76,13 +72,7 @@ Showing links live:
 python oakpost.py urls --fang examples/demo.eml
 ```
 
-`--fang` turns defanging off, for when you need a live link to paste into a tool like urlscan.io or VirusTotal. It works with any command, anywhere in the line, and prints a warning first.
-
-## Defanging
-
-Everything oakpost prints is defanged by default: `https://` becomes `hxxps://`, and the last dot of every domain and IP becomes `[.]`, so `login.example[.]net` and `203.0.113[.]25`. This is the main design decision behind oakpost. A triage tool shouldn't print clickable phishing links, and most email parsers do. Defanging happens in the one output function, so no command can print a live link by accident.
-
-Only the display changes. Every analysis still works on the real email, and `--fang` shows the original links when you ask for them.
+`--fang` works with any command, for when you need a live link to paste into urlscan.io or VirusTotal.
 
 ## Installation
 
