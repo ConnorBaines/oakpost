@@ -26,6 +26,7 @@ Run it with no command and it runs every analysis. Name a command and you get ju
 | `received` | The Received chain, oldest hop first, so you can follow the route the mail took |
 | `auth` | SPF, DKIM and DMARC verdicts, with the reason the receiving server gave |
 | `urls` | Every link in the plain-text and HTML versions, tagged with where it was found. In HTML, a link whose visible text is a different web address is shown in full |
+| `--fang` | Not a command: add it to any command to show links live instead of defanged |
 
 ## Examples
 
@@ -66,6 +67,8 @@ python oakpost.py headers examples/lookalike-demo.eml
 ```
 
 [`examples/lookalike-demo.eml`](examples/lookalike-demo.eml) is a second test email. Its sender name and subject swap some letters for lookalikes from other parts of Unicode: a Greek `Τ` and `Ρ`, a Greek `ο`, and a mathematical `𝗉`. They read as normal English, but a filter matching the plain words would miss them. In a terminal, oakpost highlights each one in red, and whenever it finds any it ends with a one-line note saying how many and what they mean.
+
+![headers highlighting lookalike letters in red](images/oakpost-lookalikes.png)
 
 Showing links live:
 
